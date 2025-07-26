@@ -2,6 +2,7 @@ from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from backend.ai_logic import analyze_message, generate_invoice
 from pydantic import BaseModel
+from typing import Dict, Any
 
 app = FastAPI()
 
@@ -16,10 +17,11 @@ app.add_middleware(
 
 class MessageInput(BaseModel):
     message: str
+    profile: Dict[str, Any]  
 
 @app.post("/analyze")
 async def analyze(input: MessageInput):
-    summary, info, reply = analyze_message(input.message)
+    summary, info, reply = analyze_message(input.message, input.profile)
     return {"summary": summary, "info": info, "reply": reply}
 
 @app.post("/generate-invoice")

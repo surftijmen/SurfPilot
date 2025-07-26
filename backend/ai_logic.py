@@ -5,23 +5,49 @@ from dotenv import load_dotenv
 load_dotenv() 
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
-def analyze_message(message: str):
+def analyze_message(text, profile):
+    prompt = f"""
+You are a virtual assistant helping an influencer respond to brand emails.
+
+Here is the influencer's personal profile:
+{profile}
+
+Here is the brand message:
+{text}
+
+TASKS:
+1. Extract this info:
+   - Brand Name
+   - Product
+   - Deliverables
+   - Deadline
+   - Payment Offered
+
+2. Summarize the request in simple terms.
+
+3. Write a smart, polite, and confident reply that matches the influencer's tone and preferences. Mention rate if it's missing. Include relevant product interest if possible.
+
+Respond in this format:
+
+SUMMARY:
+...
+
+EXTRACTED INFO:
+...
+
+SUGGESTED REPLY:
+...
+
+"""
     response = client.chat.completions.create(
-        model="gpt-4o",  # or gpt-3.5-turbo if you want
-        messages=[
-            {"role": "system", "content": "You're an assistant helping an influencer understand brand deal messages."},
-            {"role": "user", "content": message}
-        ]
+    model="gpt-4o",
+    messages=[{"role": "user", "content": prompt}]
     )
+    content = response.choices[0].message.content
 
-    full_text = response.choices[0].message.content.strip()
+    parts = content.split("\n\n")
+    return parts[0], parts[1], parts[2]
 
-    # Optional: Split based on format
-    summary = "Summary placeholder"
-    info = "Info placeholder"
-    reply = full_text
-
-    return summary, info, reply
 
 def generate_invoice(message_text):
     # TODO: parse message and render invoice template to PDF
